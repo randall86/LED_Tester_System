@@ -1,0 +1,35 @@
+// DT-Sense Temperature Sensor TWI's working with SCL frequency <= 50k Hz
+// In order to use this library, please change TWI_FREQ in (Arduino_Instalation_Directory\libraries\Wire\utility\twi.h)
+// to <= 50000L
+
+#ifndef PCA9539_h
+#define PCA9539_h
+
+#include <Arduino.h>
+#include <Wire.h>
+
+//DT-Sense Temperature Sensor I2C Command Set
+#define TEMPC		0x00
+#define TEMPF		0x01
+#define TOPSET		0x02
+#define BOTSET		0x03
+#define SETTOP		0x04
+#define SETBOT		0x05
+#define SETSAMP		0x06
+#define SETMODE		0x07
+#define CLEARGPO	0x08
+#define SETGPO		0x09
+#define READGPI		0x0A
+
+class DTSenseTemperature
+{
+	public :
+		DTSenseTemperature(byte SlaveAddress);
+		byte ReadOperation(byte OPcode);
+		bool SetOperation(byte OPcode, byte OPvalue = 0);
+		
+	private :
+		int _SlaveAddress;
+};
+
+#endif

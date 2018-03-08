@@ -1,0 +1,41 @@
+#include <PCA9539.h>
+
+DTSenseTemperature::DTSenseTemperature(byte SlaveAddress)
+{
+	_SlaveAddress = SlaveAddress;
+}
+
+byte DTSenseTemperature::ReadOperation(byte OPcode)
+{
+	if((OPcode >= TEMPC && OPcode <= BOTSET) || OPcode == READGPI)
+	{	
+		Wire.beginTransmission(_SlaveAddress);
+		Wire.write(OPcode);
+		
+		if(Wire.endTransmission() == 0)
+		{
+			delay(15);
+			Wire.requestFrom(_SlaveAddress, 1, true);
+			while(Wire.available() < 1);
+			return(Wire.read());
+		}
+		return 0;
+	}
+	return 0;
+}
+
+bool DTSenseTemperature::SetOperation(byte OPcode, byte OPvalue)
+{	
+	if(OPcode >= SETTOP && OPcode <= SETGPO)
+	{
+		Wire.beginTransmission(_SlaveAddress);
+		Wire.write(OPcode);
+		if(OPcode < CLEARGPO)
+			Wire.write(OPvalue);
+	
+		if(Wire.endTransmission() == 0)
+			return true;
+		return false;
+	}
+	return false;
+}

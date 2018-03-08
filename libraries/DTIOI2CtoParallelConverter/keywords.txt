@@ -1,0 +1,37 @@
+#####################################################
+# Syntax Coloring Map for DTIOI2CtoParallelConverter
+#####################################################
+
+#####################################################
+DTIOI2CtoParallelConverter	KEYWORD1
+#####################################################
+
+#####################################################
+twiRead	KEYWORD2
+twiWrite	KEYWORD2
+pinMode0	KEYWORD2
+pinMode1	KEYWORD2
+portMode0	KEYWORD2
+portMode1	KEYWORD2
+digitalWrite0	KEYWORD2
+digitalWrite1	KEYWORD2
+digitalWritePort0	KEYWORD2
+digitalWritePort1	KEYWORD2
+digitalRead0	KEYWORD2
+digitalRead1	KEYWORD2
+digitalReadPort0	KEYWORD2
+digitalReadPort1	KEYWORD2
+#####################################################
+
+#####################################################
+INPUTPORT0	LITERAL1
+INPUTPORT1	LITERAL1
+OUTPUTPORT0	LITERAL1
+OUTPUTPORT1	LITERAL1
+POLINVPORT0	LITERAL1
+POLINVPORT1	LITERAL1
+CONFIGPORT0	LITERAL1
+CONFIGPORT1	LITERAL1
+ALLOUTPUT	LITERAL1
+ALLINPUT	LITERAL1
+#####################################################
