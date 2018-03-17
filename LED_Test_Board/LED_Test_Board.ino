@@ -91,11 +91,11 @@ Countimer countUpTimer;
 //timer for start/stop switch debouncing
 Countimer debounceTimer;
 
-//uses the default address 0x40
-Adafruit_PWMServoDriver pwmLEDDrv = Adafruit_PWMServoDriver();
+//uses the default address 0x6A
+Adafruit_PWMServoDriver pwmLEDDrv = Adafruit_PWMServoDriver(0x6A);
 
-// The LCD constructor - I2C address 0x27
-LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
+// The LCD constructor - I2C address 0x38
+LiquidCrystal_I2C lcd(0x38, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
 //PCA9539 I/O Expander (with A1 = 0 and A0 = 0)
 DTIOI2CtoParallelConverter ioExpandr(0x77); 
@@ -192,8 +192,8 @@ void displayLEDTestMsg()
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print(LEDTestMsg[g_test_selection]);
-  Serial.print("Displaying LED test msg no:");
-  Serial.println(g_test_selection);
+  //Serial.print("Displaying LED test msg no:");
+  //Serial.println(g_test_selection);
 }
 
 void displayStartMsg()
@@ -284,7 +284,7 @@ void debounceSwRoutine()
 
 void setup()
 {
-  Serial.begin(9600);
+  //Serial.begin(9600);
   Wire.begin(); //need to start the Wire for I2C devices to function
 
   //initialize the timer to count up to max 999 hours 59 mins and 59 secs
@@ -328,8 +328,8 @@ void loop()
   {
     g_exp_intr_state = 0;
     g_test_selection = getSWSelection();
-    Serial.print("Changing LED test selection to:");
-    Serial.println(g_test_selection);
+    //Serial.print("Changing LED test selection to:");
+    //Serial.println(g_test_selection);
   }
 
   //handle start_stop switch interrupt
