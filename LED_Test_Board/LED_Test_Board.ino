@@ -4,7 +4,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 
-const char * app_ver = "v1.0";
+const char * app_ver = "v1.1";
 
 const byte PWM_OUTPUT_EN = 4; //default is low
 const byte PWM_OUTPUT_PIN_R = 0;
@@ -26,10 +26,14 @@ const byte EXP_ROTARY_SW_7 = PIN0_6;
 const byte EXP_ROTARY_SW_8 = PIN0_7;
 const byte EXP_ROTARY_SW_9 = PIN1_0;
 const byte EXP_ROTARY_SW_10 = PIN1_1;
+const byte EXP_ROTARY_SW_11 = PIN1_2;
+const byte EXP_ROTARY_SW_12 = PIN1_3;
+
+const byte DBG_LED3_RED = PIN1_4;
+const byte DBG_LED4_GREEN = PIN1_5;
 
 const uint32_t REFRESH_RATE_MSEC = 1000; //update lcd timer count every 1 sec
-const uint32_t ON_MSEC = 1000; //stable time before registering on
-const uint32_t OFF_MSEC = 500; //stable time before registering off
+const uint32_t DEBOUNCE_MSEC = 300; //stable time before registering state change
 const uint32_t CHECK_MSEC = 100; //read switch every 100ms when detected state change
 
 char *LEDTestMsg[] =
@@ -95,7 +99,7 @@ Countimer debounceTimer;
 Adafruit_PWMServoDriver pwmLEDDrv = Adafruit_PWMServoDriver(0x6A);
 
 // The LCD constructor - I2C address 0x38
-LiquidCrystal_I2C lcd(0x38, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
+LiquidCrystal_I2C lcd(0x38, 4, 5, 6, 0, 1, 2, 3, 7, POSITIVE);
 
 //PCA9539 I/O Expander (with A1 = 0 and A0 = 0)
 DTIOI2CtoParallelConverter ioExpandr(0x77); 
@@ -104,7 +108,7 @@ int g_test_selection = RED_PRI; //default is RED_PRI
 int g_display_selection = RED_PRI;
 volatile int g_sw_intr_state = 0;
 volatile int g_exp_intr_state = 0;
-byte g_debouncedSwState = 1; //off
+byte g_debouncedSwState = 0; //off
 
 void swInterruptHandler()
 {
@@ -118,10 +122,22 @@ void expInterruptHandler()
 
 int getSWSelection()
 {
-  int ret = 0;
+  int ret = -1;
   byte input_sw_9 = EXP_ROTARY_SW_9;
   byte input_sw_1_8[8] = { EXP_ROTARY_SW_1, EXP_ROTARY_SW_2, EXP_ROTARY_SW_3, EXP_ROTARY_SW_4,\
                           EXP_ROTARY_SW_5, EXP_ROTARY_SW_6, EXP_ROTARY_SW_7, EXP_ROTARY_SW_8 };
+
+  for(int index = 0; index < sizeof(input_sw_1_8); index++)
+  {
+    if(ioExpandr.digitalRead0(input_sw_1_8[index]))
+    {
+      if(!input_sw_1_8[index])
+      {
+        ret = index;
+        break;
+      }
+    } 
+  }
 
   if(ioExpandr.digitalRead1(input_sw_9))
   {
@@ -129,28 +145,12 @@ int getSWSelection()
     {
       ret = TEMP_4000K;
     }
-    else
-    {
-      int index = 0;
-      
-      for(index = 0; index < sizeof(input_sw_1_8); index++)
-      {
-        if(ioExpandr.digitalRead0(input_sw_1_8[index]))
-        {
-          if(!input_sw_1_8[index])
-          {
-            ret = index;
-            break;
-          }
-        } 
-      }
-      
-      //reached max and no inputs toggled
-      if(sizeof(input_sw_1_8) == index)
-      {
-        ret = g_test_selection; // return the current test selection
-      }
-    }
+  }
+
+  //no valid input found
+  if(ret == -1)
+  {
+    ret = g_test_selection; // return the current test selection
   }
   
   return ret;
@@ -192,8 +192,6 @@ void displayLEDTestMsg()
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print(LEDTestMsg[g_test_selection]);
-  //Serial.print("Displaying LED test msg no:");
-  //Serial.println(g_test_selection);
 }
 
 void displayStartMsg()
@@ -209,48 +207,34 @@ void displayStartMsg()
 //returns true if state changed
 bool debounceSwitch(byte *state)
 {
-  static uint8_t count = OFF_MSEC/CHECK_MSEC;
+  static uint8_t count = DEBOUNCE_MSEC/CHECK_MSEC;
   bool state_changed = false;
 
   //read the switch from the HW
   byte raw_state = digitalRead(SW_INTR_PIN);
   *state = g_debouncedSwState;
 
-    if (raw_state == g_debouncedSwState)
+  if (raw_state == g_debouncedSwState)
+  {
+    //set the timer which allows a change from current state.
+    count = DEBOUNCE_MSEC/CHECK_MSEC;
+  }
+  else
+  {
+    //state has changed - wait for new state to become stable.
+    if (--count == 0)
     {
-        //set the timer which allows a change from current state.
-        if(g_debouncedSwState)
-        {
-            count = OFF_MSEC/CHECK_MSEC;
-        }
-        else
-        {
-            count = ON_MSEC/CHECK_MSEC;
-        }
-    }
-    else
-    {
-        //state has changed - wait for new state to become stable.
-        if (--count == 0)
-        {
-            // Timer expired - accept the change.
-            g_debouncedSwState = raw_state;
-            state_changed = true;
-            *state = g_debouncedSwState;
+        // Timer expired - accept the change.
+        g_debouncedSwState = raw_state;
+        state_changed = true;
+        *state = g_debouncedSwState;
             
-            // And reset the timer.
-            if(g_debouncedSwState) //sw is off
-            {
-                count = OFF_MSEC/CHECK_MSEC;
-            }
-            else //sw is on
-            {
-                count = ON_MSEC/CHECK_MSEC;
-            }
-        }
+        // And reset the timer.
+        count = DEBOUNCE_MSEC/CHECK_MSEC;
     }
+  }
 
-    return state_changed;
+  return state_changed;
 }
 
 void debounceSwRoutine()
@@ -260,7 +244,19 @@ void debounceSwRoutine()
   //if switch state changed, update the state
   if(debounceSwitch(&switch_state))
   {
+    //ioExpandr.digitalWrite1(DBG_LED4_GREEN, !switch_state);
+    
     if(switch_state)
+    {
+      debounceTimer.stop();
+
+      //begin selected test sequence
+      setPWMOutput(&LED_cfg_table[g_test_selection]);
+
+      displayLEDTestMsg(); //update the display
+      countUpTimer.restart();
+    }
+    else
     {
       debounceTimer.stop();
       
@@ -269,22 +265,11 @@ void debounceSwRoutine()
       //off all PWM outputs
       setPWMLEDsOff();
     }
-    else
-    {
-      debounceTimer.stop();
-      
-      //begin selected test sequence
-      setPWMOutput(&LED_cfg_table[g_test_selection]);
-
-      displayLEDTestMsg(); //update the display
-      countUpTimer.restart();
-    }
   }
 }
 
 void setup()
 {
-  //Serial.begin(9600);
   Wire.begin(); //need to start the Wire for I2C devices to function
 
   //initialize the timer to count up to max 999 hours 59 mins and 59 secs
@@ -310,6 +295,17 @@ void setup()
   ioExpandr.portMode0(ALLINPUT);
   ioExpandr.pinMode1(EXP_ROTARY_SW_9, HIGH);
   ioExpandr.pinMode1(EXP_ROTARY_SW_10, HIGH); //spare
+  ioExpandr.pinMode1(EXP_ROTARY_SW_11, HIGH); //spare
+  ioExpandr.pinMode1(EXP_ROTARY_SW_12, HIGH); //spare
+
+  ioExpandr.pinMode1(DBG_LED3_RED, LOW);
+  ioExpandr.digitalWrite1(DBG_LED3_RED, HIGH);
+  
+  ioExpandr.pinMode1(DBG_LED4_GREEN, LOW);
+  ioExpandr.digitalWrite1(DBG_LED4_GREEN, HIGH);
+
+  g_test_selection = getSWSelection();
+  g_display_selection = g_test_selection;
 
   attachInterrupt(digitalPinToInterrupt(SW_INTR_PIN), swInterruptHandler, CHANGE);
   attachInterrupt(digitalPinToInterrupt(EXP_INTR_PIN), expInterruptHandler, CHANGE);
@@ -328,8 +324,6 @@ void loop()
   {
     g_exp_intr_state = 0;
     g_test_selection = getSWSelection();
-    //Serial.print("Changing LED test selection to:");
-    //Serial.println(g_test_selection);
   }
 
   //handle start_stop switch interrupt
