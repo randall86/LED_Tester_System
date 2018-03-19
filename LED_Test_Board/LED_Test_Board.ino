@@ -244,8 +244,6 @@ void debounceSwRoutine()
   //if switch state changed, update the state
   if(debounceSwitch(&switch_state))
   {
-    //ioExpandr.digitalWrite1(DBG_LED4_GREEN, !switch_state);
-    
     if(switch_state)
     {
       debounceTimer.stop();
