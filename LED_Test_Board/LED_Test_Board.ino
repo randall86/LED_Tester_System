@@ -158,20 +158,20 @@ int getSWSelection()
 
 void setPWMLEDsOff()
 {
-  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_R, 0x0000, true);
-  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_G, 0x0000, true);
-  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_B, 0x0000, true);
-  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_FW, 0x0000, true);
-  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_CW, 0x0000, true);
+  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_R, 0x0000);
+  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_G, 0x0000);
+  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_B, 0x0000);
+  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_FW, 0x0000);
+  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_CW, 0x0000);
 }
 
 void setPWMOutput(LED_dutycycle_config_t * cfg)
 {  
-  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_R, cfg->red_dutycycle, true);
-  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_G, cfg->green_dutycycle, true);
-  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_B, cfg->blue_dutycycle, true);
-  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_FW, cfg->fw_dutycycle, true);
-  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_CW, cfg->cw_dutycycle, true);
+  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_R, cfg->red_dutycycle);
+  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_G, cfg->green_dutycycle);
+  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_B, cfg->blue_dutycycle);
+  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_FW, cfg->fw_dutycycle);
+  pwmLEDDrv.setPin(PWM_OUTPUT_PIN_CW, cfg->cw_dutycycle);
 }
 
 void completeTimerCount()
