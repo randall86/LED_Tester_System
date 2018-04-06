@@ -4,7 +4,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 
-const char * app_ver = "v1.1";
+const char * app_ver = "v1.2";
 
 const byte PWM_OUTPUT_EN = 4; //default is low
 const byte PWM_OUTPUT_PIN_R = 0;
@@ -163,10 +163,17 @@ void setPWMLEDsOff()
   pwmLEDDrv.setPin(PWM_OUTPUT_PIN_B, 0x0000);
   pwmLEDDrv.setPin(PWM_OUTPUT_PIN_FW, 0x0000);
   pwmLEDDrv.setPin(PWM_OUTPUT_PIN_CW, 0x0000);
+  
+  //when output enable is set to HIGH, all the LED outputs are programmed to the value 
+  //that is defined by OUTNE[1:0] where OUTNE[1:0] of 00 the LED outputs will be 0 
+  digitalWrite(PWM_OUTPUT_EN, HIGH);
 }
 
 void setPWMOutput(LED_dutycycle_config_t * cfg)
-{  
+{
+  //when output enable is set to LOW, all the PWM outputs are enabled to follow the ON_OFF registers
+  digitalWrite(PWM_OUTPUT_EN, LOW);
+  
   pwmLEDDrv.setPin(PWM_OUTPUT_PIN_R, cfg->red_dutycycle);
   pwmLEDDrv.setPin(PWM_OUTPUT_PIN_G, cfg->green_dutycycle);
   pwmLEDDrv.setPin(PWM_OUTPUT_PIN_B, cfg->blue_dutycycle);
@@ -281,8 +288,7 @@ void setup()
   pinMode(EXP_INTR_PIN, INPUT);
 
   pwmLEDDrv.begin(); //default will set the PWM frequency to 1000Hz
-  digitalWrite(PWM_OUTPUT_EN, LOW); //enable the PWM outputs to follow the ON_OFF registers
-
+  
   //sets all the PWM output signal to off
   setPWMLEDsOff();
 
@@ -335,8 +341,16 @@ void loop()
   if(g_display_selection != g_test_selection)
   {
     g_display_selection = g_test_selection;
-    
-    countUpTimer.pause();
+
     displayLEDTestMsg(); //update the display
+    
+    if(g_debouncedSwState)
+    {
+      //begin selected test sequence
+      setPWMOutput(&LED_cfg_table[g_test_selection]);
+
+      countUpTimer.restart();
+    }
   }
 }
+
