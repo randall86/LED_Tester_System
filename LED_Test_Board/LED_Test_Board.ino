@@ -4,7 +4,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 
-const char * app_ver = "v1.2";
+const char * app_ver = "v1.3";
 
 const byte PWM_OUTPUT_EN = 4; //default is low
 const byte PWM_OUTPUT_PIN_R = 0;
@@ -31,6 +31,7 @@ const byte EXP_ROTARY_SW_12 = PIN1_3;
 
 const byte DBG_LED3_RED = PIN1_4;
 const byte DBG_LED4_GREEN = PIN1_5;
+const byte PWM_LED_ON = PIN1_6;
 
 const uint32_t REFRESH_RATE_MSEC = 1000; //update lcd timer count every 1 sec
 const uint32_t DEBOUNCE_MSEC = 300; //stable time before registering state change
@@ -167,10 +168,14 @@ void setPWMLEDsOff()
   //when output enable is set to HIGH, all the LED outputs are programmed to the value 
   //that is defined by OUTNE[1:0] where OUTNE[1:0] of 00 the LED outputs will be 0 
   digitalWrite(PWM_OUTPUT_EN, HIGH);
+
+  ioExpandr.digitalWrite1(PWM_LED_ON, LOW); //off the LEDs
 }
 
 void setPWMOutput(LED_dutycycle_config_t * cfg)
 {
+  ioExpandr.digitalWrite1(PWM_LED_ON, HIGH); //on the LEDs connected to PWM
+  
   //when output enable is set to LOW, all the PWM outputs are enabled to follow the ON_OFF registers
   digitalWrite(PWM_OUTPUT_EN, LOW);
   
@@ -287,7 +292,12 @@ void setup()
   pinMode(SW_INTR_PIN, INPUT);
   pinMode(EXP_INTR_PIN, INPUT);
 
+  //initialize the LED relay pin, for controlling LEDs connected to PWM
+  ioExpandr.pinMode1(PWM_LED_ON, LOW);
+  ioExpandr.digitalWrite1(PWM_LED_ON, LOW);
+
   pwmLEDDrv.begin(); //default will set the PWM frequency to 1000Hz
+  pwmLEDDrv.useExtClk(); //set to use the external oscillator
   
   //sets all the PWM output signal to off
   setPWMLEDsOff();
@@ -304,7 +314,7 @@ void setup()
 
   ioExpandr.pinMode1(DBG_LED3_RED, LOW);
   ioExpandr.digitalWrite1(DBG_LED3_RED, HIGH);
-  
+
   ioExpandr.pinMode1(DBG_LED4_GREEN, LOW);
   ioExpandr.digitalWrite1(DBG_LED4_GREEN, HIGH);
 

@@ -54,6 +54,7 @@ class Adafruit_PWMServoDriver {
   void begin(void);
   void reset(void);
   void setPWMFreq(float freq);
+  void useExtClk(void);
   void setPWM(uint8_t num, uint16_t on, uint16_t off);
   void setPin(uint8_t num, uint16_t val, bool invert=false);
 

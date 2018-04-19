@@ -115,6 +115,23 @@ void Adafruit_PWMServoDriver::setPWMFreq(float freq) {
 
 /**************************************************************************/
 /*! 
+    @brief  Sets EXTCLK pin to use the external clock
+*/
+/**************************************************************************/
+void Adafruit_PWMServoDriver::useExtClk(void) {
+  uint8_t oldmode = read8(PCA9685_MODE1);
+  uint8_t newmode = (oldmode&0x7F) | 0x10; // sleep
+  write8(PCA9685_MODE1, newmode); // go to sleep, turn off internal oscillator
+
+  write8(PCA9685_MODE1, newmode | 0x40);  // This sets both the SLEEP and EXTCLK bits of the MODE1 register to switch to use the external clock.
+
+#ifdef ENABLE_DEBUG_OUTPUT
+  Serial.print("Mode now 0x"); Serial.println(read8(PCA9685_MODE1), HEX);
+#endif
+}
+
+/**************************************************************************/
+/*! 
     @brief  Sets the PWM output of one of the PCA9685 pins
     @param  num One of the PWM output pins, from 0 to 15
     @param  on At what point in the 4096-part cycle to turn the PWM output ON
