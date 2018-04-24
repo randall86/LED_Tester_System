@@ -13,6 +13,8 @@ const byte PWM_OUTPUT_PIN_B = 2;
 const byte PWM_OUTPUT_PIN_FW = 3;
 const byte PWM_OUTPUT_PIN_CW = 4;
 
+const byte PWM_EXTCLK_PRESCALE = 5;
+
 const byte EXP_INTR_PIN = 2;
 const byte SW_INTR_PIN = 3;
 
@@ -296,8 +298,7 @@ void setup()
   ioExpandr.pinMode1(PWM_LED_ON, LOW);
   ioExpandr.digitalWrite1(PWM_LED_ON, LOW);
 
-  pwmLEDDrv.begin(); //default will set the PWM frequency to 1000Hz
-  pwmLEDDrv.useExtClk(); //set to use the external oscillator
+  pwmLEDDrv.begin(PWM_EXTCLK_PRESCALE); //set to use the external oscillator
   
   //sets all the PWM output signal to off
   setPWMLEDsOff();

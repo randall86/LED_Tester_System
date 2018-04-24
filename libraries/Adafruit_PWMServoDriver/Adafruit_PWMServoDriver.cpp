@@ -53,13 +53,22 @@ Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(TwoWire *i2c, uint8_t addr) {
 /**************************************************************************/
 /*! 
     @brief  Setups the I2C interface and hardware
+	@param  prescale If value is non-zero, configure to use external clock
 */
 /**************************************************************************/
-void Adafruit_PWMServoDriver::begin(void) {
+void Adafruit_PWMServoDriver::begin(uint8_t prescale) {
   _i2c->begin();
   reset();
-  // set a default frequency
-  setPWMFreq(1000);
+  
+  if(prescale)
+  {
+    setExtClk(prescale);
+  }
+  else
+  {
+    // set a default frequency
+    setPWMFreq(1000);
+  }
 }
 
 
@@ -116,16 +125,23 @@ void Adafruit_PWMServoDriver::setPWMFreq(float freq) {
 /**************************************************************************/
 /*! 
     @brief  Sets EXTCLK pin to use the external clock
+	@param  prescale Configures the prescale value to be used by the external clock
 */
 /**************************************************************************/
-void Adafruit_PWMServoDriver::useExtClk(void) {
+void Adafruit_PWMServoDriver::setExtClk(uint8_t prescale) {
   uint8_t oldmode = read8(PCA9685_MODE1);
   uint8_t newmode = (oldmode&0x7F) | 0x10; // sleep
   write8(PCA9685_MODE1, newmode); // go to sleep, turn off internal oscillator
-
-  write8(PCA9685_MODE1, newmode | 0x40);  // This sets both the SLEEP and EXTCLK bits of the MODE1 register to switch to use the external clock.
-
-#ifdef ENABLE_DEBUG_OUTPUT
+  
+  // This sets both the SLEEP and EXTCLK bits of the MODE1 register to switch to use the external clock.
+  write8(PCA9685_MODE1, (newmode |= 0x40));
+  
+  write8(PCA9685_PRESCALE, prescale); // set the prescaler
+  
+  delay(5);
+  write8(PCA9685_MODE1, (newmode & ~(0x10)) | 0xa0); //clear the SLEEP bit to start
+  
+  #ifdef ENABLE_DEBUG_OUTPUT
   Serial.print("Mode now 0x"); Serial.println(read8(PCA9685_MODE1), HEX);
 #endif
 }
