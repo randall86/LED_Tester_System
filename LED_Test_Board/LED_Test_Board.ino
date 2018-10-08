@@ -4,7 +4,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 
-const char * app_ver = "v1.3";
+const char * app_ver = "v1.4";
 
 const byte PWM_OUTPUT_EN = 4; //default is low
 const byte PWM_OUTPUT_PIN_R = 0;
@@ -86,10 +86,10 @@ LED_dutycycle_config_t LED_cfg_table[] =
   {0x0000, 0x0000, 0x0FFF, 0x0000, 0x0000}, //BLUE_PRI
   {0x0000, 0x0000, 0x0000, 0x0FFF, 0x0000}, //TEMP_2200K_PRI
   {0x0000, 0x0000, 0x0000, 0x0000, 0x0FFF}, //TEMP_6500K_PRI
-  {0x0FFF, 0x0DB5, 0x0000, 0x0000, 0x0000}, //YELLOW
-  {0x0000, 0x0FFF, 0x022C, 0x0000, 0x006D}, //CYAN
-  {0x0FFF, 0x0000, 0x0395, 0x0000, 0x0000}, //MAGENTA
-  {0x0000, 0x0FCA, 0x0000, 0x0FFF, 0x0D47}  //TEMP_4000K
+  {0x0FFF, 0x0F09, 0x0000, 0x0031, 0x0000}, //YELLOW
+  {0x0000, 0x0FFF, 0x022B, 0x0000, 0x006C}, //CYAN
+  {0x0FFF, 0x0000, 0x048E, 0x0000, 0x0018}, //MAGENTA
+  {0x0000, 0x0E18, 0x0000, 0x0F36, 0x0A72}  //TEMP_4000K
 };
 
 //timer for counting the test duration
@@ -321,6 +321,8 @@ void setup()
 
   g_test_selection = getSWSelection();
   g_display_selection = g_test_selection;
+
+  g_sw_intr_state = digitalRead(SW_INTR_PIN);
 
   attachInterrupt(digitalPinToInterrupt(SW_INTR_PIN), swInterruptHandler, CHANGE);
   attachInterrupt(digitalPinToInterrupt(EXP_INTR_PIN), expInterruptHandler, CHANGE);
